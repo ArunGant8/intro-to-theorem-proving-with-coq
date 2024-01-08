@@ -32,3 +32,38 @@ Proof.
   exact proof_of_A.
 Qed.
 
+(* Proof going backward (Large) *)
+
+Theorem backward_large : (forall A B C : Prop, A -> (A -> B) -> (B -> C) -> C).
+Proof.
+  intros A B C.
+  intros proof_of_A A_implies_B B_implies_C.
+  refine (B_implies_C _).
+  refine (A_implies_B _).
+  exact proof_of_A.
+Qed.
+
+(* Proof going backward (HUGE) *)
+
+Theorem backward_huge : (forall A B C : Prop, A -> (A -> B) -> (A -> B -> C) -> C).
+Proof.
+  intros A B C.
+  intros proof_of_A A_implies_B A_implies_B_implies_C.
+  refine (A_implies_B_implies_C _ _).
+  exact proof_of_A.
+
+  refine (A_implies_B _).
+  exact proof_of_A.
+Qed.
+
+(* Proof going forward (HUGE) *)
+
+Theorem forward_huge : (forall A B C : Prop, A -> (A -> B) -> (A -> B -> C) -> C).
+Proof.
+  intros A B C.
+  intros proof_of_A A_implies_B A_implies_B_implies_C.
+  pose (proof_of_B := A_implies_B proof_of_A).
+  pose (proof_of_C := A_implies_B_implies_C proof_of_A proof_of_B).
+  exact proof_of_C.
+  Show Proof.
+Qed.
