@@ -368,3 +368,73 @@ Proof.
   admit.
 Admitted.
 
+(* Existence:
+   In Coq, you cannot just declare that
+   something exists. You have to prove it,
+   in the form of a "witness" of its existence. *)
+
+Definition basic_predicate :=
+  (fun a => Is_true (andb a true)).
+
+Theorem thm_exists_basics : (ex basic_predicate).
+Proof.
+  pose (witness := true).
+  refine (ex_intro basic_predicate witness _).
+  simpl.
+  exact I.
+Qed.
+
+Theorem thm_exists_basics__again : (exists a, Is_true (andb a true)).
+Proof.
+  pose (witness := true).
+  refine (ex_intro _ witness _).
+  simpl.
+  exact I.
+Qed.
+
+(* Existence and Universality, combined *)
+
+Theorem thm_forall_exists : (forall b, (exists a, Is_true (eqb a b))).
+Proof.
+  intros b.
+  case b.
+
+  (* b is true *)
+  pose (witness := true).
+  refine (ex_intro _ witness _).
+  simpl.
+  exact I.
+
+  (* b is false *)
+  pose (witness := false).
+  refine (ex_intro _ witness _).
+  simpl.
+  exact I.
+
+Qed.
+
+(* The witness is always equal to b in the above proof.
+   So we can simplify it *)
+
+Theorem thm_forall_exists__again : (forall a, (exists b, Is_true (eqb a b))).
+Proof.
+  intros b.
+  refine (ex_intro _ b _).
+  exact (eqb_a_a b).
+Qed.
+
+(* Exists and Forall *)
+
+Theorem forall_exists : (forall P : Set -> Prop, (forall x, ~(P x)) -> ~(exists x, P x)).
+Proof.
+  intros P.
+  intros forall_x_not_Px.
+  unfold not.
+  intros exists_x_Px.
+  destruct exists_x_Px as [ witness proof_of_Pwitness ].
+  pose (not_Pwitness := forall_x_not_Px witness).
+  unfold not in not_Pwitness.
+  pose (proof_of_False := not_Pwitness proof_of_Pwitness).
+  case proof_of_False.
+Qed.
+
