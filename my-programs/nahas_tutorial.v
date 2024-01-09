@@ -67,3 +67,304 @@ Proof.
   exact proof_of_C.
   Show Proof.
 Qed.
+
+(* True and False (better named Provable and Unprovable) *)
+(* True is provable *)
+
+Theorem True_can_be_proven : True.
+  exact I.
+Qed.
+
+(* False is unprovable *)
+
+Theorem False_cannot_be_proven : ~False.
+Proof.
+  unfold not.
+  intros proof_of_False.
+  exact proof_of_False.
+Qed.
+
+
+(* Reductio ad Absurdum *)
+
+Theorem absurd2 : forall A C : Prop, A -> ~A -> C.
+Proof.
+  intros A C.
+  intros proof_of_A proof_that_A_cannot_be_proven.
+  unfold not in proof_that_A_cannot_be_proven.
+  pose (proof_of_False := proof_that_A_cannot_be_proven proof_of_A).
+  case proof_of_False.
+Qed.
+
+Require Import Bool.
+
+(* true is True (i.e. provable) *)
+
+Theorem true_is_True: Is_true true.
+Proof.
+  simpl.     (* simplify *)
+  exact I.
+Qed.
+
+(* Is_true called with a complex argument *)
+
+Theorem not_eqb_true_false : ~(Is_true (eqb true false)).
+Proof.
+  simpl.
+  exact False_cannot_be_proven.
+Qed.
+
+(* case with bools *)
+
+Theorem eqb_a_a : (forall a : bool, Is_true (eqb a a)).
+Proof.
+  intros a.
+  case a.
+
+  (* suppose a is true *)
+  simpl.
+  exact I.
+
+  (* suppose a is false *)
+  simpl.
+  exact I.
+
+Qed.
+
+(* another example of the previous type *)
+
+Theorem thm_eqb_a_t : (forall a: bool, (Is_true (eqb a true)) -> (Is_true a)).
+Proof.
+  intros a.
+  case a.
+
+  (* suppose a is true *)
+  simpl.
+  intros proof_of_True.
+  exact I.
+
+  (* suppose a is false *)
+  simpl.
+  intros proof_of_False.
+  case proof_of_False.
+
+Qed.
+
+(* Or: a function with the signature
+  or (A B : Prop) : Prop            *)
+
+Theorem left_or : (forall A B : Prop, A -> A \/ B).
+Proof.
+  intros A B.
+  intros proof_of_A.
+  pose (proof_of_A_or_B := or_introl proof_of_A : A \/ B). (* NOTE: We need to specify the type A \/ B since
+                                                             Coq cannot infer the type B of the OR simply
+                                                             from the given information *)
+  exact proof_of_A_or_B.
+Qed.
+
+Theorem right_or : (forall A B : Prop, B -> A \/ B).
+Proof.
+  intros A B.
+  intros proof_of_B.
+  refine (or_intror _).
+  exact proof_of_B.
+Qed.
+
+(* Or commutes *)
+
+Theorem or_commutes : (forall A B : Prop, A \/ B -> B \/ A).
+Proof.
+  intros A B.
+  intros A_or_B.
+  case A_or_B.
+
+  (* suppose A_or_B is (or_introl proof_of_A). *)
+  intros proof_of_A.
+  refine (or_intror _).
+  exact proof_of_A.
+
+  (* suppose A_or_B is (or_intror proof_of_B). *)
+  intros proof_of_B.
+  refine (or_introl _).
+  exact proof_of_B.
+
+Qed.
+
+(* AND: has a single constructor, as opposed to OR,
+   which has two                                   *)
+
+Theorem both_and : (forall A B : Prop, A -> B -> A /\ B).
+Proof.
+  intros A B.
+  intros proof_of_A proof_of_B.
+  pose (proof_of_A_and_B := conj proof_of_A proof_of_B).
+  exact proof_of_A_and_B.
+Qed.
+
+(* AND commutes *)
+
+Theorem and_commutes : (forall A B : Prop, A /\ B -> B /\ A).
+Proof.
+  intros A B.
+  intros A_and_B.
+  case A_and_B.
+
+  (* suppose A_and_B is (conj proof_of_A proof_of_B). *)
+  intros proof_of_A proof_of_B.
+  refine (conj _ _).
+
+  exact proof_of_B.    (* subgoal 1 *)
+
+  exact proof_of_A.    (* subgoal 2 *)
+
+Qed.
+
+(* destruct tactic
+   (Recommended) Usage:
+   destruct <hyp> as [ <arg1> <arg2> ... ]. *)
+
+Theorem and_commutes__again: (forall A B : Prop, A /\ B -> B /\ A).
+Proof.
+  intros A B.
+  intros A_and_B.
+  destruct A_and_B as [ proof_of_A proof_of_B ].
+  refine (conj _ _).
+
+  exact proof_of_B.
+
+  exact proof_of_A.
+
+Qed.
+
+(* orb is or: orb is the function defined in Bool
+   that operates on bools and returns their OR. *)
+
+Theorem orb_is_or : (forall a b, Is_true (orb a b) <-> Is_true a \/ Is_true b).
+Proof.
+  intros a b.
+  unfold iff.
+  refine (conj _ _).
+
+  (* orb -> \/ *)
+  intros H.
+  case a, b.
+
+  (* suppose a, b is true, true *)
+  simpl.
+  refine (or_introl _).
+  exact I.
+
+  (* suppose a, b is true, false *)
+  simpl.
+  refine (or_introl _).
+  exact I.
+
+  (* suppose a, b is false, true *)
+  simpl.
+  refine (or_intror _).
+  exact I.
+
+  (* suppose a, b is false, false *)
+  simpl in H.
+  case H.
+
+  (* \/ -> orb *)
+  intros H.
+  case a, b.
+
+  (* suppose a, b is true, true *)
+  simpl.
+  exact I.
+
+  (* suppose a, b is true, false *)
+  simpl.
+  exact I.
+
+  (* suppose a, b is false, true *)
+  simpl.
+  exact I.
+
+  (* suppose a, b is false, false *)
+  case H.
+
+  (* suppose H is (or_introl A). *)
+  intros A.
+  simpl in A.
+  case A.
+
+  (* suppose H is (or_intror B). *)
+  intros B.
+  simpl in B.
+  case B.
+
+Qed.
+
+(* andb is /\ *)
+
+Theorem andb_is_and : (forall a b, Is_true (andb a b) <-> Is_true a /\ Is_true b).
+Proof.
+  intros a b.
+  unfold iff.
+  refine (conj _ _).
+
+  (* andb -> /\ *)
+  intros H.
+  case a, b.
+
+  (* suppose a, b is true, true *)
+  simpl.
+  exact (conj I I).
+
+  (* suppose a, b is true, false *)
+  simpl in H.
+  case H.
+
+  (* suppose a, b is false, true *)
+  simpl in H.
+  case H.
+
+  (* suppose a, b is false, false *)
+  simpl in H.
+  case H.
+
+  (* /\ -> andb *)
+  intros H.
+  case a, b.
+
+  (* suppose a, b is true, true *)
+  simpl.
+  exact I.
+
+  (* suppose a, b is true, false *)
+  simpl in H.
+  destruct H as [ A B ].
+  case B.
+
+  (* suppose a, b is false, true *)
+  simpl in H.
+  destruct H as [ A B ].
+  case A.
+
+  (* suppose a, b is false, false *)
+  simpl in H.
+  destruct H as [ A B ].
+  case A.
+
+Qed.
+
+(* negb is NOT *)
+
+Theorem negb_is_not : (forall a, Is_true (negb a) <-> (~(Is_true a))).
+Proof.
+  intros a.
+  unfold iff.
+  refine (conj _ _).
+
+  (* negb -> NOT *)
+  intros H.
+  simpl.
+  admit.
+  admit.
+Admitted.
+
