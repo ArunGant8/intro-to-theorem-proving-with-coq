@@ -637,3 +637,121 @@ Qed.
 
 Require Import List.
 
+Print length.
+
+(* adding an element increases length by 1. *)
+
+Theorem cons_adds_one_to_length :
+  (forall A : Type,
+      (forall (x : A) (lst : list A),
+          length (x :: lst) = S (length lst))).
+Proof.
+  intros A.
+  intros x lst.
+  simpl.
+  exact (eq_refl (S (length lst))).
+Qed.
+
+Check hd.
+
+(* There are some problems with the provided definition
+   of hd. I have to figure out what they are. *)
+
+(* hd returns option *)
+
+(* Inductive option (A : Type) : Type :=
+   | Some : A -> option A
+   | None : option A. *)
+
+Definition hd_error (A : Type) (l : list A) :=
+  match l with
+  | nil => None
+  | x :: _ => Some x
+  end.
+
+Compute hd_error nat nil.
+Compute hd_error nat (5 :: 4 :: nil).
+
+Theorem correctness_of_hd_error :
+  (forall A : Type,
+      (forall (x : A) (lst : list A),
+          (hd_error A nil) = None /\ (hd_error A (x :: lst)) = Some x)).
+Proof.
+  intros A.
+  intros x lst.
+  simpl.
+  refine (conj _ _).
+  exact (eq_refl None).
+  exact (eq_refl (Some x)).
+
+Qed.
+
+(* hd with a proof that the list is non-empty *)
+
+Definition hd_never_fail (A : Type) (lst : list A) (safety_proof : lst <> nil) : A :=
+  (match lst as b return (lst = b -> A) with
+   | nil => (fun foo : lst = nil =>
+              match (safety_proof foo) return A with
+              end
+           )
+   | x :: _ => (fun foo : lst = x :: _ => x)
+   end) eq_refl.
+
+(* correctness of the above monstrosity *)
+
+Theorem correctness_of_hd_never_fail:
+  (forall A : Type,
+      (forall (x : A) (rest : list A),
+          (exists safety_proof : ((x :: rest) <> nil),
+              (hd_never_fail A (x :: rest) safety_proof) = x))).
+Proof.
+  intros A.
+  intros x rest.
+  assert (witness : ((x :: rest) <> nil)).
+  unfold not.
+  intros cons_eq_nil.
+  discriminate cons_eq_nil.
+  refine (ex_intro _ witness _).
+  simpl.
+  exact (eq_refl x).
+
+Qed.
+
+(* Tail of a list *)
+Print tl.
+
+(* Do the same for tail:
+   define tail_option
+          tail_never_fail
+  and prove them correct. *)
+
+(* Appending lists *)
+
+Print app.
+
+(* Some theorems to prove about appending list *)
+
+Theorem app_nil_l : (forall A : Type, (forall l : list A, nil ++ l = l)).
+Proof.
+  admit.
+Admitted.
+
+Theorem app_nil_r : (forall A : Type, (forall l : list A, l ++ nil = l)).
+Proof.
+  admit.
+Admitted.
+
+Theorem app_comm_cons : (forall A (x y : list A) (a : A), a :: (x ++ y) = (a :: x) ++ y).
+Proof.
+  admit.
+Admitted.
+
+Theorem app_assoc : (forall A (l m n : list A), l ++ m ++ n = (l ++ m) ++ n).
+Proof.
+  admit.
+Admitted.
+
+Theorem app_cons_not_nil : (forall A (x y : list A) (a : A), nil <> x ++ a :: y).
+Proof.
+  admit.
+Admitted.
