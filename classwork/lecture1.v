@@ -62,10 +62,29 @@ Definition id {A: Type} := fun (x:A) => x.
 Lemma funny_fold_gen_exercise :
   forall (A: Type) (l l' : list A) (h : list A -> list A), foldl f h l l' = revInto l (h l').
 Proof.
-  admit.
-Admitted. 
+  intros A.
+  intros l l'.
+  (* intros h. *)
+  (* elim l. *)
+  induction l as [ | x xs IH ].
 
+  (* base case *)
+  intros h.
+  simpl.
+  exact (eq_refl (h l')).
+
+  (* induction hypothesis *)
+  intros h.
+  simpl.
+  apply IH.
+Qed.
+  
 Lemma funny_fold_exercise : forall (A: Type) (l : list A), foldl f id l [] = reverse l.
 Proof.
-  admit.
-Admitted.
+  intros A.
+  intros l.
+  rewrite funny_fold_gen_exercise.
+  symmetry.
+  apply fastrev_correct.
+Qed.
+
