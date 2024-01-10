@@ -438,3 +438,202 @@ Proof.
   case proof_of_False.
 Qed.
 
+(* Now for the other way *)
+
+Theorem exists_forall : (forall P : Set -> Prop, ~(exists x, P x) -> (forall x, ~(P x))).
+Proof.
+  intros P.
+  intros not_exists_x_Px.
+  intros x.
+  unfold not.
+  intros P_x.
+  unfold not in not_exists_x_Px.
+  refine (not_exists_x_Px _).
+  exact (ex_intro P x P_x).
+Qed.
+
+
+(* Equality
+   Has only one constructor, eq_refl *)
+
+(* Equality is symmetric *)
+
+Theorem thm_eq_sym : (forall x y : Set, x = y -> y = x).
+Proof.
+  intros x y.
+  intros x_y.
+  destruct x_y as [].
+  exact (eq_refl x).
+Qed.
+
+(* Equality is transitive *)
+
+Theorem thm_eq_trans : (forall x y z : Set, x = y -> y = z -> x = z).
+Proof.
+  intros x y z.
+  intros x_y y_z.
+  destruct x_y as [].
+  exact y_z.
+Qed.
+
+(* rewrite and rewrite <- *)
+
+Theorem thm_eq_trans__again : (forall x y z : Set, x = y -> y = z -> x = z).
+Proof.
+  intros x y z.
+  intros x_y y_z.
+  rewrite x_y.
+  rewrite <- y_z.
+  exact (eq_refl y).
+Qed.
+
+(* An example that explicitly relies on convertibility *)
+
+(* andb is symmetric *)
+
+Theorem andb_sym : (forall a b, a && b = b && a).
+Proof.
+  intros a b.
+  case a, b.
+
+  (* suppose a, b is true, true *)
+  simpl.
+  exact (eq_refl true).
+
+  (* suppose a, b is true, false *)
+  simpl.
+  exact (eq_refl false).
+
+  (* suppose a, b is false, true *)
+  simpl.
+  exact (eq_refl false).
+
+  (* suppose a, b is false, false *)
+  simpl.
+  exact (eq_refl false).
+
+Qed.
+
+(* Inequality with discriminate *)
+
+Theorem neq_nega : (forall a, a <> (negb a)).
+Proof.
+  intros a.
+  unfold not.
+  case a.
+
+  (* a is true *)
+  intros a_eq_neg_a.
+  simpl in a_eq_neg_a.
+  discriminate a_eq_neg_a.
+
+  (* a is false *)
+  intros a_eq_neg_a.
+  simpl in a_eq_neg_a.
+  discriminate a_eq_neg_a.
+
+Qed.
+
+(* Natural Numbers *)
+
+(* Natural numbers are:
+    | O (zero, written with the alphabet O
+    | (S n), where n is a natural number
+*)
+
+Theorem plus_2_3 : (S (S O)) + (S (S (S O))) = (S (S (S (S (S O))))).
+Proof.
+  simpl.
+  exact (eq_refl 5).
+Qed.
+
+(* Induction *)
+
+Check nat_ind.  (* Automatically generated induction scheme for nats *)
+
+(* n + 0 = n *)
+
+Theorem plus_n_0 : (forall n, n + 0 = n).
+Proof.
+  intros n.
+  elim n.     (* very similar to case, but automatically generates
+                 the induction goals *)
+
+  (* base case: *)
+  simpl.
+  exact (eq_refl 0).
+
+  (* inductive case *)
+  intros n0.
+  intros inductive_hypothesis.
+  simpl.
+  rewrite inductive_hypothesis.
+  exact (eq_refl (S n0)).
+Qed.
+
+(* induction tactic *)
+
+Theorem plus_n_0__again : (forall n : nat, n + 0 = n).
+Proof.
+  intros n.
+  induction n as [ | n0 inductive_hypothesis ].
+
+  (* base case *)
+  simpl.
+  exact (eq_refl 0).
+
+  (* inductive case *)
+  simpl.
+  rewrite inductive_hypothesis.
+  exact (eq_refl (S n0)).
+
+Qed.
+
+(* Commands to display definitions *)
+Print or.
+Print nat_ind.
+
+(* Addition is Symmetric *)
+
+Theorem plus_sym : (forall n m : nat, n + m = m + n).
+Proof.
+  intros n m.
+  elim n.
+
+  (* base case for n *)
+  elim m.
+
+  (* base case for m *)
+  simpl.
+  exact (eq_refl 0).
+
+  (* inductive case for m *)
+  intros n0 inductive_hypothesis_m.
+  simpl.
+  rewrite <- inductive_hypothesis_m.
+  simpl.
+  exact (eq_refl (S n0)).
+
+  (* inductive hypothesis for n *)
+  intros n0 inductive_hypothesis_n.
+  simpl.
+  rewrite inductive_hypothesis_n.
+  elim m.
+
+  (* base case for m *)
+  simpl.
+  exact (eq_refl (S n0)).
+
+  (* inductive case for m *)
+  intros n1 inductive_hyp_m.
+  simpl.
+  rewrite inductive_hyp_m.
+  simpl.
+  exact (eq_refl (S (n1 + S n0))).
+
+Qed.
+
+(** DATA TYPES **)
+
+Require Import List.
+
